@@ -124,9 +124,9 @@ return function (App $app) {
             ]);
             
             if($result){
-                $data = json_encode(['success'=>true]);
+                $data = ['success'=>true];
             } else {
-                $data = json_encode(['success'=>false]);
+                $data = ['success'=>false];
             }
         } catch(PDOException $e) {
             $data = [
@@ -138,11 +138,11 @@ return function (App $app) {
             ];
         }
         
+        $data = json_encode($data);
         $response->getBody()->write($data);
             return $response
                 ->withHeader('content-type', 'application/json')
-                ->withHeader('charset', 'utf-8');
-            
+                ->withHeader('charset', 'utf-8');   
     });
     
     $app->delete('/api/wines/{id}', function(Request $request, Response $response, array $args) {
@@ -165,9 +165,9 @@ return function (App $app) {
             ]);
             
             if($result){
-                $data = json_encode(['success'=>true]);
+                $data = ['success'=>true];
             } else {
-                $data = json_encode(['success'=>false]);
+                $data = ['success'=>false];
             }
   
         } catch(PDOException $e) {
@@ -180,16 +180,16 @@ return function (App $app) {
             ];
         }
         
+        $data = json_encode($data);
         $response->getBody()->write($data);
             return $response
                 ->withHeader('content-type', 'application/json')
-                ->withHeader('charset', 'utf-8');
-            
+                ->withHeader('charset', 'utf-8');   
     });
     
-    $app->put('/api/wines/{id}', function(Request $request, Response $response) {
+    $app->put('/api/wines/{id}', function(Request $request, Response $response, array $args) {
         $id = $args['id'];
-        $content = $request->getBody()->getBody()->getContents();
+        $content = $request->getBody()->getContents();
         parse_str($content, $wine);
         
         //Se connecter au serveur de DB
@@ -201,7 +201,7 @@ return function (App $app) {
             //definir la requête
             $query = "UPDATE `wine` SET `name`=:name, `year`=:year, `grapes`=:grapes,"
                     ."`country`=:country, `region`=:region, `description`=:description,"
-                    ."`picture`=:picture"
+                    ."`picture`=:picture "
                     ."WHERE `id`=:id" ;
         
             //Envoyer la requête
@@ -219,10 +219,10 @@ return function (App $app) {
                 ':picture' => $wine['picture'],
             ]);
             
-            if($result){
-                $data = json_encode(['success'=>true]);
+            if($result && $stmt->rowCount()!=0){
+                $data = ['success'=>true];
             } else {
-                $data = json_encode(['success'=>false]);
+                $data = ['success'=>false];
             }
         } catch(PDOException $e) {
             $data = [
@@ -234,15 +234,52 @@ return function (App $app) {
             ];
         }
         
+        $data = json_encode($data);
         $response->getBody()->write($data);
             return $response
                 ->withHeader('content-type', 'application/json')
                 ->withHeader('charset', 'utf-8');
-            
     });
     
-    
+    $app->get('/api/wines/search/{keyword}', function(Request $request, Response $response, array $args) {
+        $keyword = $args['keyword'];
+        
+        //Se connecter au serveur de DB
+        try {
+            $pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ]);
+            
+            //nettoyer les données entrantes
+            $id = $pdo->quote($keyword,PDO::PARAM_STR);
+            
+            //Préparer la requête
+            $query = "SELECT * FROM wine WHERE name LIKE '%$keyword%'";
+        
+            //Envoyer la requête
+            $stmt = $pdo->query($query);
 
+            //Extraire les données
+            $wines = $stmt->fetchAll(PDO::FETCH_ASSOC);     //var_dump($wines); die;
+        } catch(PDOException $e) {
+            $wines = [
+                [
+                    "error" => "Problème de base données",
+                    "errorCode" => $e->getCode(),
+                    "errorMsg" => $e->getMessage(),
+                ]
+            ];
+        }
+        
+        //Convertir les données en JSON
+        $data = json_encode($wines);
+        
+        $response->getBody()->write($data);
+        return $response
+                ->withHeader('content-type', 'application/json')
+                ->withHeader('charset', 'utf-8');
+    });
+    
     $app->group('/users', function (Group $group) {
         $group->get('/', ListUsersAction::class);
         $group->get('/{id}', ViewUserAction::class);
