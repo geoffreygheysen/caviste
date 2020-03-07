@@ -60,7 +60,7 @@ function search() {
     
     //Filtrer la liste des vins sur base du keyword
     const regex = new RegExp(keyword, 'i');
-    let filteredWines = wines.filter(wine => wine.name.search(regex)!=-1);
+    let filteredWines = wines.filter(wine => wine.name && wine.name.search(regex)!=-1);
 
     //Afficher les vins dans le UL liste
     showListe(filteredWines);
@@ -91,41 +91,31 @@ function getWine(id, wines) {
     input.innerHTML = wine.notes;
 
     let imgWine = document.getElementById('picture');
-    imgWine.src = 'images/'+wine.picture;
+    imgWine.src = wine.picture!=''
+        ? picturesURL+wine.picture
+        : 'images/pics/nopics.png';
 }
 
+const picturesURL = 'http://localhost/caviste/caviste/public/pics/';
 let wines;
 
 window.onload = function() {
-    const apiURL = 'js/wines.json';
+    
+    const apiURL = 'http://localhost:8888/api'; //'js/wines.json';
     const options = {
         'method':'GET'
     };
     
-    fetch(apiURL, options).then(function(response) {
+    fetch(apiURL + '/wines', options).then(function(response) {
         if(response.ok) {
             response.json().then(function(data){
                 wines = data;
+                
+                //afficher la liste de vins
+                showListe(wines);
             });
         }
     });
-
-    /*  const xhr = new XMLHttpRequest();       //console.log(xhr);
-    
-    xhr.onreadystatechange = function() {
-        if(xhr.readyState==4 && xhr.status==200) {
-            let data = xhr.responseText;        //console.log(data);
-            
-            wines = JSON.parse(data);       console.log(wines);
-                        
-            //Afficher la liste des vins dans UL liste
-            showListe(wines);
-        }     
-    };
-    
-    xhr.open('GET','js/wines.json',true);
-    xhr.send();
-    */
 
     //Configuration des boutons
     let btSearch = document.getElementById('btSearch');
