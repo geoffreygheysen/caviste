@@ -1,3 +1,91 @@
+let wines;
+const apiURL = 'http://localhost:8888/api'; //'js/wines.json';
+const picturesURL = 'http://localhost/caviste/caviste/public/pics/';
+
+window.onload = function() {
+    const options = {
+        'method':'GET'
+    };
+    
+    fetch(apiURL + '/wines', options).then(function(response) {
+        if(response.ok) {
+            response.json().then(function(data){
+                wines = data;
+                
+                //afficher la liste de vins
+                showListe(wines);
+            });
+        }
+    });
+
+    //Configuration des boutons
+    let btSearch = document.getElementById('btSearch');
+    btSearch.addEventListener('click', () => search());
+    
+    let btNewWine = document.getElementById('btNewWine');
+    btNewWine.addEventListener('click', () => newWine());
+    
+    let btSave = document.getElementById('btSave');
+    btSave.addEventListener('click', () => saveWine());
+};
+
+function saveWine() {
+    //creation d'un objet wine
+    let wine = {};
+    
+    //recuperer les données du formulaire et les transferer a l'objet wine 
+    let input = document.getElementById('idWine');
+    wine.id = input.value;
+
+    input = document.getElementById('name');
+    wine.name = input.value;
+
+    input = document.getElementById('grapes');
+    wine.garpes = input.value;
+
+    input = document.getElementById('country');
+    wine.country = input.value;
+
+    input = document.getElementById('region');
+    wine.region = input.value;
+
+    input = document.getElementById('year');
+    wine.year = input.value;
+
+    input = document.getElementById('notes');
+    wine.notes = input.innerHTML;
+
+    let imgWine = document.getElementById('picture');
+    wine.picture = imgWine.src;
+    
+    //envoyer l'objet wine a l'API en POST ou en PUT
+    let method = (wine.id=='') ?'POST':'PUT';
+    
+    const options = {
+        'method': method,
+        'body': JSON.stringify(wine),
+        'mode': 'cors',
+        'headers': {
+            'content-type':'application/json; charset=UTF-8'
+        }
+    };
+    
+    const fetchURL = method=='PUT' ? '/wines/'+wine.id : '/wines';
+    
+    fetch(apiURL + fetchURL, options).then(function(response) {
+        if(response.ok) {
+            response.json().then(function(data){
+                if(data){
+                    
+                }
+                
+                //afficher la liste de vins
+                showListe(wines);
+            });
+        }
+    });
+}
+
 function newWine() {
     //Vider le formulaire
     let input = document.getElementById('idWine');
@@ -95,33 +183,3 @@ function getWine(id, wines) {
         ? picturesURL+wine.picture
         : 'images/pics/nopics.png';
 }
-
-const picturesURL = 'http://localhost/caviste/caviste/public/pics/';
-let wines;
-
-window.onload = function() {
-    
-    const apiURL = 'http://localhost:8888/api'; //'js/wines.json';
-    const options = {
-        'method':'GET'
-    };
-    
-    fetch(apiURL + '/wines', options).then(function(response) {
-        if(response.ok) {
-            response.json().then(function(data){
-                wines = data;
-                
-                //afficher la liste de vins
-                showListe(wines);
-            });
-        }
-    });
-
-    //Configuration des boutons
-    let btSearch = document.getElementById('btSearch');
-    btSearch.addEventListener('click', () => search());
-    
-    let btNewWine = document.getElementById('btNewWine');
-    btNewWine.addEventListener('click', () => newWine());
-};
-

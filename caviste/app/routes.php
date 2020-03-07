@@ -238,7 +238,8 @@ return function (App $app) {
         $response->getBody()->write($data);
             return $response
                 ->withHeader('content-type', 'application/json')
-                ->withHeader('charset', 'utf-8');
+                ->withHeader('charset', 'utf-8')
+                ->withHeader('Access-Control-Allow-Origin', '*');
     });
     
     $app->get('/api/wines/search/{keyword}', function(Request $request, Response $response, array $args) {
