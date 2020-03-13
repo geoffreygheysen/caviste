@@ -7,8 +7,11 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface as Group;
+use RedBeanPHP\R;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 
 return function (App $app) {
+
     $app->get('/', function (Request $request, Response $response) {
         var_dump($request);
         $response->getBody()->write('Géniaaal!');
@@ -21,18 +24,25 @@ return function (App $app) {
         
         //Se connecter au serveur de DB
         try {
-            $pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
+            
+            //$pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
+            //    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            //]);
+            
         
-            //Préparer la requête
-            $query = 'SELECT * FROM wine';
-        
+            //Préparer la requête//Envoyer la requête//Extraire les données
+            //$query = 'SELECT * FROM wine';
+            $result = R::findAll('wine', 'ORDER BY name');
+            
+            foreach($result as $bean){
+                $wines[] = $bean;
+            }
+            
             //Envoyer la requête
-            $stmt = $pdo->query($query);
+            //$stmt = $pdo->query($query);
 
             //Extraire les données
-            $wines = $stmt->fetchAll(PDO::FETCH_ASSOC);     //var_dump($wines); die;
+            //$wines = $stmt->fetchAll(PDO::FETCH_ASSOC);     //var_dump($wines); die;
         } catch(PDOException $e) {
             $wines = [
                 [
@@ -58,21 +68,24 @@ return function (App $app) {
         
         //Se connecter au serveur de DB
         try {
-            $pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
+            $result = R::load('wine',$id);
             
+            $wines = [$result];
+            //$pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
+            //    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            //]);
+
             //nettoyer les données entrantes
-            $id = $pdo->quote($id,PDO::PARAM_INT);
+            //$id = $pdo->quote($id,PDO::PARAM_INT);
             
             //Préparer la requête
-            $query = "SELECT * FROM wine WHERE id=$id";
+            //$query = "SELECT * FROM wine WHERE id=$id";
         
             //Envoyer la requête
-            $stmt = $pdo->query($query);
+            //$stmt = $pdo->query($query);
 
             //Extraire les données
-            $wines = $stmt->fetch(PDO::FETCH_ASSOC);     //var_dump($wines); die;
+            //$wines = $stmt->fetch(PDO::FETCH_ASSOC);     //var_dump($wines); die;
         } catch(PDOException $e) {
             $wines = [
                 [
@@ -247,21 +260,11 @@ return function (App $app) {
         
         //Se connecter au serveur de DB
         try {
-            $pdo = new PDO('mysql:host=localhost;dbname=cellar','root','root', [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
             
-            //nettoyer les données entrantes
-            $id = $pdo->quote($keyword,PDO::PARAM_STR);
+            $result = R::findAll('wine', 'name LIKE ?', ["%$keyword%"]);
             
-            //Préparer la requête
-            $query = "SELECT * FROM wine WHERE name LIKE '%$keyword%'";
-        
-            //Envoyer la requête
-            $stmt = $pdo->query($query);
-
-            //Extraire les données
-            $wines = $stmt->fetchAll(PDO::FETCH_ASSOC);     //var_dump($wines); die;
+            $wines = [$result];
+            
         } catch(PDOException $e) {
             $wines = [
                 [
